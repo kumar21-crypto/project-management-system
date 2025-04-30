@@ -21,6 +21,8 @@ import { APPWRITE_CONFIG } from "../lib/appwriteConfig";
 const SubmitProject = () => {
   // project data
   const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+const attachmentInputRef = useRef(null);
   const [fileNames, setFileNames] = useState([]);
   const [newTeamMember, setNewTeamMember] = useState("");
   const [uploadStatus, setUploadStatus] = useState("idle");
@@ -465,198 +467,150 @@ const SubmitProject = () => {
                 ></textarea>
               </div>
 
-              {/* for project image */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Project Images</label>
-                <div
-                  className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center"
-                  onDragOver={(e) => e.preventDefault()} // Prevent default behavior to allow drop
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const files = Array.from(e.dataTransfer.files);
+             {/* for project image */}
+<div>
+  <label className="block text-sm font-medium mb-2">Project Images</label>
+  <div className="text-center">
+    <button
+      type="button"
+      className="mt-2 px-4 py-2 bg-blue-700 text-white rounded-lg"
+      onClick={() => imageInputRef.current.click()} // Use a separate ref for images
+    >
+      Browse Images
+    </button>
+    <input
+      type="file"
+      name="images"
+      accept="image/*" // Restrict file selection to images only
+      multiple
+      className="hidden"
+      ref={imageInputRef} // Separate ref for image input
+      onChange={(e) => {
+        const files = Array.from(e.target.files);
 
-                    // Validate file size (max 5MB per image)
-                    const validFiles = files.filter((file) => file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024); // 5MB in bytes
-                    const invalidFiles = files.filter((file) => !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024);
+        // Validate file size (max 5MB per image)
+        const validFiles = files.filter((file) => file.size <= 5 * 1024 * 1024);
+        const invalidFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
 
-                    if (invalidFiles.length > 0) {
-                      toast.error("Some images exceed the 5MB size limit and were not added.");
-                    }
+        if (invalidFiles.length > 0) {
+          toast.error("Some images exceed the 5MB size limit and were not added.");
+        }
 
-                    setProjectData((prevData) => ({
-                      ...prevData,
-                      images: [...prevData.images, ...validFiles],
-                    }));
-                  }}
-                >
-                  <i className="fas fa-image text-4xl text-gray-400 mb-3"></i>
-                  <p className="text-gray-400">Drag and drop images here or</p>
-                  <button
-                    type="button"
-                    className="mt-2 px-4 py-2 bg-custom text-white bg-blue-700 rounded-lg"
-                    onClick={() => fileInputRef.current.click()}
-                  >
-                    Browse Images
-                  </button>
-                  <input
-                    type="file"
-                    name="images"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    ref={fileInputRef}
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
+        setProjectData((prevData) => ({
+          ...prevData,
+          images: [...prevData.images, ...validFiles],
+        }));
+      }}
+    />
+    <p className="mt-2 text-sm text-gray-500">
+      Supported formats: JPG, PNG, GIF (Max 5MB per image)
+    </p>
 
-                      // Validate file size (max 5MB per image)
-                      const validFiles = files.filter((file) => file.size <= 5 * 1024 * 1024);
-                      const invalidFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
+    {/* Display selected images */}
+    {projectData.images.length > 0 && (
+      <div className="mt-4 grid grid-cols-4 gap-4">
+        {projectData.images.map((image, index) => (
+          <div
+            key={index}
+            className="relative border border-gray-600 rounded-lg p-2 bg-gray-700"
+          >
+            <img
+              src={URL.createObjectURL(image)}
+              alt={`Preview ${index + 1}`}
+              className="w-full h-24 object-cover rounded-md"
+            />
+            <button
+              type="button"
+              className="absolute top-1 right-1 bg-red-600 text-white rounded-full px-1"
+              onClick={() => {
+                setProjectData((prevData) => ({
+                  ...prevData,
+                  images: prevData.images.filter((_, i) => i !== index),
+                }));
+              }}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
-                      if (invalidFiles.length > 0) {
-                        toast.error("Some images exceed the 5MB size limit and were not added.");
-                      }
-
-                      setProjectData((prevData) => ({
-                        ...prevData,
-                        images: [...prevData.images, ...validFiles],
-                      }));
-                    }}
-                  />
-                  <p className="mt-2 text-sm text-gray-500">
-                    Supported formats: JPG, PNG, GIF (Max 5MB per image)
-                  </p>
-
-
-                  {projectData.images.length > 0 && (
-                    <div className="mt-4 grid grid-cols-4 gap-4">
-                      {projectData.images.map((image, index) => (
-                        <div
-                          key={index}
-                          className="relative border border-gray-600 rounded-lg p-2 bg-gray-700"
-                        >
-                          <img
-                            src={URL.createObjectURL(image)}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-md"
-                          />
-                          <button
-                            type="button"
-                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full px-1"
-                            onClick={() => {
-                              setProjectData((prevData) => ({
-                                ...prevData,
-                                images: prevData.images.filter((_, i) => i !== index),
-                              }));
-                            }}
-                          >
-                            <i className="fas fa-times"></i>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+{/* for project files */}
+<div>
+  <label className="block text-sm font-medium mb-2">
+    Attachments
+  </label>
+  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+    <button
+      type="button"
+      className="mt-2 px-4 py-2 bg-custom text-white bg-green-600 rounded-lg"
+      onClick={() => attachmentInputRef.current.click()} // Use a separate ref for attachments
+    >
+      Browse Files
+    </button>
+    <input
+      type="file"
+      ref={attachmentInputRef} // Separate ref for attachment input
+      name="attachments"
+      className="hidden"
+      multiple
+      accept=".pdf, .ppt, .doc, .docx, .zip"
+      onChange={handleFileChange}
+    />
+    <p className="mt-2 text-sm text-gray-500">
+      Supported formats: PDF, PPT, DOC, DOCX, ZIP (Max 10MB)
+    </p>
+    {/* Display selected files */}
+    {projectData.attachments.length > 0 && (
+      <div className="mt-4 grid grid-cols-3 gap-4">
+        {projectData.attachments.map((file, index) => (
+          <div
+            key={index}
+            className="relative border border-gray-600 rounded-lg p-2 bg-gray-700"
+          >
+            {/* File preview */}
+            {file.type.startsWith("image/") ? (
+              <img
+                src={URL.createObjectURL(file)}
+                alt={`Preview ${index + 1}`}
+                className="w-full h-24 object-cover rounded-md"
+              />
+            ) : file.type === "application/pdf" ? (
+              <embed
+                src={URL.createObjectURL(file)}
+                type="application/pdf"
+                className="w-full h-24 rounded-md"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-24 text-white">
+                <i className="fas fa-file-alt text-4xl"></i>
+                <p className="text-sm truncate ml-2">{file.name}</p>
               </div>
+            )}
 
-              {/* for project files */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Attachments
-                </label>
-                <div
-                  className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center"
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const files = Array.from(e.dataTransfer.files);
-                    // Validate file size (max 10MB)
-                    const validFiles = files.filter((file) => file.size <= 10 * 1024 * 1024); // 10MB in bytes
-                    const invalidFiles = files.filter((file) => file.size > 10 * 1024 * 1024);
+            {/* Remove button */}
+            <button
+              type="button"
+              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+              onClick={() => {
+                setProjectData((prevData) => ({
+                  ...prevData,
+                  attachments: prevData.attachments.filter((_, i) => i !== index),
+                }));
+              }}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
-                    if (invalidFiles.length > 0) {
-                      alert("Some files exceed the 10MB size limit and were not added.");
-                    }
-                    setProjectData((prevData) => ({
-                      ...prevData,
-                      attachments: [...prevData.attachments, ...validFiles],
-                    }));
-
-                    setFileNames((prevFileNames) => [
-                      ...prevFileNames,
-                      ...validFiles.map((file) => file.name),
-                    ]);
-                  }}
-                >
-
-
-                  <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-                  <p className="text-gray-400">Drag and drop files here or</p>
-                  <button
-                    type="button"
-                    className="mt-2 px-4 py-2 bg-custom text-white bg-green-600 rounded-lg"
-                    onClick={() => fileInputRef.current.click()}
-                  >
-                    Browse Files
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    name="attachments"
-                    className="hidden"
-                    multiple
-                    accept=".pdf, .ppt, .doc, .docx, .zip"
-                    onChange={handleFileChange}
-                  />
-                  <p className="mt-2 text-sm text-gray-500">
-                    Supported formats: PDF, PPT, DOC, DOCX, ZIP (Max 10MB)
-                  </p>
-                  {/* Display selected files */}
-                  {projectData.attachments.length > 0 && (
-                    <div className="mt-4 grid grid-cols-3 gap-4">
-                      {projectData.attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="relative border border-gray-600 rounded-lg p-2 bg-gray-700"
-                        >
-                          {/* File preview */}
-                          {file.type.startsWith("image/") ? (
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-md"
-                            />
-                          ) : file.type === "application/pdf" ? (
-                            <embed
-                              src={URL.createObjectURL(file)}
-                              type="application/pdf"
-                              className="w-full h-24 rounded-md"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-24 text-white">
-                              <i className="fas fa-file-alt text-4xl"></i>
-                              <p className="text-sm truncate ml-2">{file.name}</p>
-                            </div>
-                          )}
-
-                          {/* Remove button */}
-                          <button
-                            type="button"
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                            onClick={() => {
-                              setProjectData((prevData) => ({
-                                ...prevData,
-                                attachments: prevData.attachments.filter((_, i) => i !== index),
-                              }));
-                            }}
-                          >
-                            <i className="fas fa-times"></i>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
 
             <div className="flex justify-end gap-4">
